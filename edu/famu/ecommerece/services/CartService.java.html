@@ -1,0 +1,159 @@
+<html>
+<head>
+<title>CartService.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CartService.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">edu</span><span class="s2">.</span><span class="s1">famu</span><span class="s2">.</span><span class="s1">ecommerece</span><span class="s2">.</span><span class="s1">services</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">cloud</span><span class="s2">.</span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">Firestore</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">firebase</span><span class="s2">.</span><span class="s1">cloud</span><span class="s2">.</span><span class="s1">FirestoreClient</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">stereotype</span><span class="s2">.</span><span class="s1">Service</span><span class="s2">;</span>
+
+<span class="s1">@Service</span>
+<span class="s0">public class </span><span class="s1">CartService</span>
+<span class="s2">{</span>
+    <span class="s0">private </span><span class="s1">Firestore firestore</span><span class="s2">;</span>
+    <span class="s0">private </span><span class="s1">ProductService productService</span><span class="s2">;</span>
+
+    <span class="s0">public </span><span class="s1">CartService</span><span class="s2">(</span><span class="s1">ProductService productService</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">firestore </span><span class="s2">= </span><span class="s1">FirestoreClient</span><span class="s2">.</span><span class="s1">getFirestore</span><span class="s2">();</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">productService </span><span class="s2">= </span><span class="s1">productService</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">Cart getCartByUserId</span><span class="s2">(</span><span class="s1">String userId</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">DocumentSnapshot</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;carts&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s1">DocumentSnapshot document </span><span class="s2">= </span><span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">();</span>
+
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">document</span><span class="s2">.</span><span class="s1">exists</span><span class="s2">())</span>
+            <span class="s2">{</span>
+                <span class="s0">return </span><span class="s1">document</span><span class="s2">.</span><span class="s1">toObject</span><span class="s2">(</span><span class="s1">Cart</span><span class="s2">.</span><span class="s0">class</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s0">else</span>
+            <span class="s2">{</span>
+                <span class="s0">return new </span><span class="s1">Cart</span><span class="s2">();</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return null</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">CartResponse addProductToCart</span><span class="s2">(</span><span class="s1">String userId</span><span class="s2">, </span><span class="s1">String productId</span><span class="s2">, </span><span class="s0">int </span><span class="s1">quantity</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">Cart cart </span><span class="s2">= </span><span class="s1">getCartByUserId</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">);</span>
+            <span class="s1">Product product </span><span class="s2">= </span><span class="s1">productService</span><span class="s2">.</span><span class="s1">getProductById</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">);</span>
+
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">product </span><span class="s2">== </span><span class="s0">null</span><span class="s2">) {</span>
+                <span class="s0">throw new </span><span class="s1">Exception</span><span class="s2">(</span><span class="s3">&quot;Product not found.&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+
+            <span class="s1">HashMap</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">products </span><span class="s2">= </span><span class="s1">cart</span><span class="s2">.</span><span class="s1">getProducts</span><span class="s2">();</span>
+            <span class="s1">products</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">, </span><span class="s1">products</span><span class="s2">.</span><span class="s1">getOrDefault</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">, </span><span class="s4">0</span><span class="s2">) + </span><span class="s1">quantity</span><span class="s2">);</span>
+
+            <span class="s1">cart</span><span class="s2">.</span><span class="s1">setProducts</span><span class="s2">(</span><span class="s1">products</span><span class="s2">);</span>
+            <span class="s1">cart</span><span class="s2">.</span><span class="s1">setTotalAmount</span><span class="s2">(</span><span class="s1">calculateCartTotal</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">));</span>
+
+            <span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;carts&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">).</span><span class="s1">set</span><span class="s2">(</span><span class="s1">cart</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">CartResponse</span><span class="s2">(</span><span class="s3">&quot;Product added to cart successfully!&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">CartResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to add product to cart: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">CartResponse removeProductFromCart</span><span class="s2">(</span><span class="s1">String userId</span><span class="s2">, </span><span class="s1">String productId</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">Cart cart </span><span class="s2">= </span><span class="s1">getCartByUserId</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">);</span>
+
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">cart</span><span class="s2">.</span><span class="s1">getProducts</span><span class="s2">().</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">))</span>
+            <span class="s2">{</span>
+                <span class="s1">cart</span><span class="s2">.</span><span class="s1">getProducts</span><span class="s2">().</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">);</span>
+                <span class="s1">cart</span><span class="s2">.</span><span class="s1">setTotalAmount</span><span class="s2">(</span><span class="s1">calculateCartTotal</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">));</span>
+
+
+                <span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;carts&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">).</span><span class="s1">set</span><span class="s2">(</span><span class="s1">cart</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+                <span class="s0">return new </span><span class="s1">CartResponse</span><span class="s2">(</span><span class="s3">&quot;Product removed from cart successfully!&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s0">else</span>
+            <span class="s2">{</span>
+                <span class="s0">throw new </span><span class="s1">Exception</span><span class="s2">(</span><span class="s3">&quot;Product not found in cart.&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">CartResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to remove product from cart: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public double </span><span class="s1">calculateCartTotal</span><span class="s2">(</span><span class="s1">String userId</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">Cart cart </span><span class="s2">= </span><span class="s1">getCartByUserId</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">);</span>
+            <span class="s0">double </span><span class="s1">total </span><span class="s2">= </span><span class="s4">0.0</span><span class="s2">;</span>
+
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">Map</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">entry </span><span class="s2">: </span><span class="s1">cart</span><span class="s2">.</span><span class="s1">getProducts</span><span class="s2">().</span><span class="s1">entrySet</span><span class="s2">())</span>
+            <span class="s2">{</span>
+                <span class="s1">Product product </span><span class="s2">= </span><span class="s1">productService</span><span class="s2">.</span><span class="s1">getProductById</span><span class="s2">(</span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getKey</span><span class="s2">());</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">product </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">)</span>
+                <span class="s2">{</span>
+                    <span class="s1">total </span><span class="s2">+= </span><span class="s1">product</span><span class="s2">.</span><span class="s1">getPrice</span><span class="s2">().</span><span class="s1">doubleValue</span><span class="s2">() * </span><span class="s1">entry</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">();</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s0">return </span><span class="s1">total</span><span class="s2">;</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return </span><span class="s4">0.0</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">CartResponse clearCart</span><span class="s2">(</span><span class="s1">String userId</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">Cart cart </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Cart</span><span class="s2">();</span>
+            <span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;carts&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">).</span><span class="s1">set</span><span class="s2">(</span><span class="s1">cart</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">CartResponse</span><span class="s2">(</span><span class="s3">&quot;Cart cleared successfully!&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">CartResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to clear cart: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

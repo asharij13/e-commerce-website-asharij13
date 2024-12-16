@@ -1,0 +1,123 @@
+<html>
+<head>
+<title>ProductService.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ProductService.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">edu</span><span class="s2">.</span><span class="s1">famu</span><span class="s2">.</span><span class="s1">ecommerece</span><span class="s2">.</span><span class="s1">services</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">cloud</span><span class="s2">.</span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">Firestore</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">firebase</span><span class="s2">.</span><span class="s1">cloud</span><span class="s2">.</span><span class="s1">FirestoreClient</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">stereotype</span><span class="s2">.</span><span class="s1">Service</span><span class="s2">;</span>
+
+<span class="s1">@Service</span>
+<span class="s0">public class </span><span class="s1">ProductService </span><span class="s2">{</span>
+    <span class="s0">private </span><span class="s1">Firestore firestore</span><span class="s2">;</span>
+    <span class="s0">public </span><span class="s1">ProductService</span><span class="s2">()</span>
+    <span class="s2">{</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">firestore </span><span class="s2">= </span><span class="s1">FirestoreClient</span><span class="s2">.</span><span class="s1">getFirestore</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Product</span><span class="s2">&gt; </span><span class="s1">getAllProducts</span><span class="s2">() {</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">QuerySnapshot</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;products&quot;</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">QueryDocumentSnapshot</span><span class="s2">&gt; </span><span class="s1">documents </span><span class="s2">= </span><span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">().</span><span class="s1">getDocuments</span><span class="s2">();</span>
+
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Product</span><span class="s2">&gt; </span><span class="s1">products </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">QueryDocumentSnapshot document </span><span class="s2">: </span><span class="s1">documents</span><span class="s2">)</span>
+            <span class="s2">{</span>
+                <span class="s1">products</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">document</span><span class="s2">.</span><span class="s1">toObject</span><span class="s2">(</span><span class="s1">Product</span><span class="s2">.</span><span class="s0">class</span><span class="s2">));</span>
+            <span class="s2">}</span>
+            <span class="s0">return </span><span class="s1">products</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">Product getProductById</span><span class="s2">(</span><span class="s1">String productId</span><span class="s2">) {</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">DocumentSnapshot</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;products&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s1">DocumentSnapshot document </span><span class="s2">= </span><span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">();</span>
+
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">document</span><span class="s2">.</span><span class="s1">exists</span><span class="s2">())</span>
+            <span class="s2">{</span><span class="s0">return </span><span class="s1">document</span><span class="s2">.</span><span class="s1">toObject</span><span class="s2">(</span><span class="s1">Product</span><span class="s2">.</span><span class="s0">class</span><span class="s2">);}</span>
+            <span class="s0">else</span>
+            <span class="s2">{</span><span class="s0">throw new </span><span class="s1">Exception</span><span class="s2">(</span><span class="s3">&quot;Product not found.&quot;</span><span class="s2">);}</span>
+        <span class="s2">}</span>
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return null</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">ProductResponse addProduct</span><span class="s2">(</span><span class="s1">Product product</span><span class="s2">) {</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">WriteResult</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;products&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">product</span><span class="s2">.</span><span class="s1">getProductId</span><span class="s2">()).</span><span class="s1">set</span><span class="s2">(</span><span class="s1">product</span><span class="s2">);</span>
+            <span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ProductResponse</span><span class="s2">(</span><span class="s3">&quot;Product added successfully!&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ProductResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to add product: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">ProductResponse updateProduct</span><span class="s2">(</span><span class="s1">String productId</span><span class="s2">, </span><span class="s1">Product product</span><span class="s2">) {</span>
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">WriteResult</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;products&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">).</span><span class="s1">set</span><span class="s2">(</span><span class="s1">product</span><span class="s2">);</span>
+            <span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ProductResponse</span><span class="s2">(</span><span class="s3">&quot;Product updated successfully!&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ProductResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to update product: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">ProductResponse deleteProduct</span><span class="s2">(</span><span class="s1">String productId</span><span class="s2">) {</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">WriteResult</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;products&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">productId</span><span class="s2">).</span><span class="s1">delete</span><span class="s2">();</span>
+            <span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ProductResponse</span><span class="s2">(</span><span class="s3">&quot;Product deleted successfully!&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ProductResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to delete product: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+
+
+
+
+
+
+
+
+<span class="s2">}</span><span class="s4">//END OF CLASS</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<html>
+<head>
+<title>OrderService.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+OrderService.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">edu</span><span class="s2">.</span><span class="s1">famu</span><span class="s2">.</span><span class="s1">ecommerece</span><span class="s2">.</span><span class="s1">services</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">cloud</span><span class="s2">.</span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">Firestore</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">firebase</span><span class="s2">.</span><span class="s1">cloud</span><span class="s2">.</span><span class="s1">FirestoreClient</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">stereotype</span><span class="s2">.</span><span class="s1">Service</span><span class="s2">;</span>
+
+<span class="s1">@Service</span>
+<span class="s0">public class </span><span class="s1">OrderService </span><span class="s2">{</span>
+    <span class="s0">private </span><span class="s1">Firestore firestore</span><span class="s2">;</span>
+    <span class="s0">private </span><span class="s1">CartService cartService</span><span class="s2">;</span>
+
+    <span class="s0">public </span><span class="s1">OrderService</span><span class="s2">(</span><span class="s1">CartService cartService</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">firestore </span><span class="s2">= </span><span class="s1">FirestoreClient</span><span class="s2">.</span><span class="s1">getFirestore</span><span class="s2">();</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">cartService </span><span class="s2">= </span><span class="s1">cartService</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">OrderResponse placeOrder</span><span class="s2">(</span><span class="s1">String userId</span><span class="s2">, </span><span class="s1">Order orderRequest</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">Cart userCart </span><span class="s2">= </span><span class="s1">cartsService</span><span class="s2">.</span><span class="s1">getCartByUserId</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">);</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">userCart </span><span class="s2">== </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">userCart</span><span class="s2">.</span><span class="s1">getProducts</span><span class="s2">().</span><span class="s1">isEmpty</span><span class="s2">())</span>
+            <span class="s2">{</span>
+                <span class="s0">throw new </span><span class="s1">Exception</span><span class="s2">(</span><span class="s3">&quot;Cart is empty. Cannot place an order.&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Order newOrder </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Order</span><span class="s2">();</span>
+            <span class="s1">newOrder</span><span class="s2">.</span><span class="s1">setOrderId</span><span class="s2">(</span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;orders&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">().</span><span class="s1">getId</span><span class="s2">());</span>
+            <span class="s1">newOrder</span><span class="s2">.</span><span class="s1">setUserId</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">);</span>
+            <span class="s1">newOrder</span><span class="s2">.</span><span class="s1">setProducts</span><span class="s2">(</span><span class="s1">userCart</span><span class="s2">.</span><span class="s1">getProducts</span><span class="s2">());</span>
+            <span class="s1">newOrder</span><span class="s2">.</span><span class="s1">setTotalAmount</span><span class="s2">(</span><span class="s1">cartsService</span><span class="s2">.</span><span class="s1">calculateCartTotal</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">));</span>
+            <span class="s1">newOrder</span><span class="s2">.</span><span class="s1">setOrderStatus</span><span class="s2">(</span><span class="s3">&quot;Pending&quot;</span><span class="s2">);</span>
+            <span class="s1">newOrder</span><span class="s2">.</span><span class="s1">setShippingInfo</span><span class="s2">(</span><span class="s1">orderRequest</span><span class="s2">.</span><span class="s1">getShippingInfo</span><span class="s2">());</span>
+            <span class="s1">newOrder</span><span class="s2">.</span><span class="s1">setCreatedAt</span><span class="s2">(</span><span class="s1">orderRequest</span><span class="s2">.</span><span class="s1">getCreatedAt</span><span class="s2">());</span>
+
+            <span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;orders&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">newOrder</span><span class="s2">.</span><span class="s1">getOrderId</span><span class="s2">()).</span><span class="s1">set</span><span class="s2">(</span><span class="s1">newOrder</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+
+            <span class="s1">cartsService</span><span class="s2">.</span><span class="s1">clearCart</span><span class="s2">(</span><span class="s1">userId</span><span class="s2">);</span>
+
+            <span class="s0">return new </span><span class="s1">OrderResponse</span><span class="s2">(</span><span class="s3">&quot;Order placed successfully!&quot;</span><span class="s2">, </span><span class="s1">newOrder</span><span class="s2">.</span><span class="s1">getOrderId</span><span class="s2">());</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">OrderResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to place order: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Order</span><span class="s2">&gt; </span><span class="s1">getOrdersByUserId</span><span class="s2">(</span><span class="s1">String userId</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">QuerySnapshot</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;orders&quot;</span><span class="s2">)</span>
+                    <span class="s2">.</span><span class="s1">whereEqualTo</span><span class="s2">(</span><span class="s3">&quot;userId&quot;</span><span class="s2">, </span><span class="s1">userId</span><span class="s2">)</span>
+                    <span class="s2">.</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">QueryDocumentSnapshot</span><span class="s2">&gt; </span><span class="s1">documents </span><span class="s2">= </span><span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">().</span><span class="s1">getDocuments</span><span class="s2">();</span>
+
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Order</span><span class="s2">&gt; </span><span class="s1">userOrders </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">QueryDocumentSnapshot document </span><span class="s2">: </span><span class="s1">documents</span><span class="s2">)</span>
+            <span class="s2">{</span>
+                <span class="s1">userOrders</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">document</span><span class="s2">.</span><span class="s1">toObject</span><span class="s2">(</span><span class="s1">Order</span><span class="s2">.</span><span class="s0">class</span><span class="s2">));</span>
+            <span class="s2">}</span>
+            <span class="s0">return </span><span class="s1">userOrders</span><span class="s2">;</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;(); </span><span class="s4">// Return an empty list if error occurs</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">Order getOrderById</span><span class="s2">(</span><span class="s1">String orderId</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try</span>
+        <span class="s2">{</span>
+            <span class="s1">ApiFuture</span><span class="s2">&lt;</span><span class="s1">DocumentSnapshot</span><span class="s2">&gt; </span><span class="s1">future </span><span class="s2">= </span><span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;orders&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">orderId</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s1">DocumentSnapshot document </span><span class="s2">= </span><span class="s1">future</span><span class="s2">.</span><span class="s1">get</span><span class="s2">();</span>
+
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">document</span><span class="s2">.</span><span class="s1">exists</span><span class="s2">())</span>
+            <span class="s2">{</span>
+                <span class="s0">return </span><span class="s1">document</span><span class="s2">.</span><span class="s1">toObject</span><span class="s2">(</span><span class="s1">Order</span><span class="s2">.</span><span class="s0">class</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s0">else</span>
+            <span class="s2">{</span>
+                <span class="s0">throw new </span><span class="s1">Exception</span><span class="s2">(</span><span class="s3">&quot;Order not found.&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return null</span><span class="s2">;</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public </span><span class="s1">OrderResponse cancelOrder</span><span class="s2">(</span><span class="s1">String orderId</span><span class="s2">)</span>
+    <span class="s2">{</span>
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s1">Order order </span><span class="s2">= </span><span class="s1">getOrderById</span><span class="s2">(</span><span class="s1">orderId</span><span class="s2">);</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">order </span><span class="s2">== </span><span class="s0">null</span><span class="s2">)</span>
+            <span class="s2">{</span>
+                <span class="s0">throw new </span><span class="s1">Exception</span><span class="s2">(</span><span class="s3">&quot;Order not found.&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+
+            <span class="s0">if </span><span class="s2">(!</span><span class="s3">&quot;Pending&quot;</span><span class="s2">.</span><span class="s1">equalsIgnoreCase</span><span class="s2">(</span><span class="s1">order</span><span class="s2">.</span><span class="s1">getOrderStatus</span><span class="s2">()))</span>
+            <span class="s2">{</span>
+                <span class="s0">throw new </span><span class="s1">Exception</span><span class="s2">(</span><span class="s3">&quot;Only pending orders can be canceled.&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+
+            <span class="s1">order</span><span class="s2">.</span><span class="s1">setOrderStatus</span><span class="s2">(</span><span class="s3">&quot;Canceled&quot;</span><span class="s2">);</span>
+            <span class="s1">firestore</span><span class="s2">.</span><span class="s1">collection</span><span class="s2">(</span><span class="s3">&quot;orders&quot;</span><span class="s2">).</span><span class="s1">document</span><span class="s2">(</span><span class="s1">orderId</span><span class="s2">).</span><span class="s1">set</span><span class="s2">(</span><span class="s1">order</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+
+            <span class="s0">return new </span><span class="s1">OrderResponse</span><span class="s2">(</span><span class="s3">&quot;Order canceled successfully!&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s0">catch </span><span class="s2">(</span><span class="s1">Exception e</span><span class="s2">)</span>
+        <span class="s2">{</span>
+            <span class="s1">e</span><span class="s2">.</span><span class="s1">printStackTrace</span><span class="s2">();</span>
+            <span class="s0">return new </span><span class="s1">OrderResponse</span><span class="s2">(</span><span class="s3">&quot;Failed to cancel order: &quot; </span><span class="s2">+ </span><span class="s1">e</span><span class="s2">.</span><span class="s1">getMessage</span><span class="s2">());</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span></pre>
+</body>
+</html>
